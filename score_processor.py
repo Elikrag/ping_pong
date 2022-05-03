@@ -103,9 +103,57 @@ def compute_season_by_season_performance(games_by_player, seasons):
 
     performance_by_season_dfs = []
     for season, results in performance_by_season.items():
-        season_performance =  pd.DataFrame(results, columns=['player', 'games_played', 'wins', 'losses', 'win %', 'avg_pfpg', 'avg_papg'])
+        season_performance = pd.DataFrame(results, columns=['player', 'games_played', 'wins', 'losses', 'win %', 'avg_pfpg', 'avg_papg'])
         season_performance = season_performance.sort_values(by='win %', ascending=False)
         
         performance_by_season_dfs.append(season_performance)
 
     return performance_by_season_dfs
+
+
+def compute_head_to_head_overall_performance(games_by_player):
+    players = games_by_player.keys()
+    
+    head_to_heads = {player: [] for player in players}
+
+    for player, games in games_by_player.items():
+        for opponent in players:
+            if player == opponent:
+                continue
+
+            games_against_opponent = games.loc[games['opponent'] == opponent]
+
+            if games_against_opponent.empty:
+                head_to_heads[player].append({
+                    'player': player,
+                    'opponent': opponent,
+                    'games_played': 0,
+                    'wins': 0,
+                    'losses': 0,
+                    'win %': 0,
+                    'avg_pfpg': 0,
+                    'avg_papg': 0
+                })
+                continue
+            
+            win_loss_counts = games_against_opponent['win/loss'].value_counts()
+            wins = win_loss_counts.get('win') if not win_loss_counts.get('win') == None else 0
+            losses = win_loss_counts.get('loss') if not win_loss_counts.get('loss') == None else 0
+
+            head_to_heads[player].append({
+                'player': player,
+                'opponent': opponent,
+                'games_played': games_against_opponent.shape[0],
+                'wins': wins,
+                'losses': losses,
+                'win %': round(wins/games_against_opponent.shape[0] * 100, 2),
+                'avg_pfpg': round(games_against_opponent['player_score'].sum() / games_against_opponent.shape[0], 2),
+                'avg_papg': round(games_against_opponent['opponent_score'].sum() / games_against_opponent.shape[0], 2)
+            })
+    
+    head_to_heads_dfs = []
+    for player, head_to_head in head_to_heads.items():
+        player_head_to_heads = pd.DataFrame(head_to_head, columns=['player', 'opponent', 'games_played', 'wins', 'losses', 'win %', 'avg_pfpg', 'avg_papg'])
+        head_to_heads_dfs.append(player_head_to_heads)
+
+    return head_to_heads_dfs

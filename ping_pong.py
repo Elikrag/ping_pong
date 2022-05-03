@@ -62,20 +62,22 @@ if __name__ == '__main__':
     for i, season in enumerate(seasons):
         print(f'\t\t\t{season} SEASON\n')
         print(f'{performances_by_season[i]}\n')
+    
+    print('---------------------- HEAD TO HEAD PERFORMANCE -----------------\n')
+    head_to_heads = compute_head_to_head_overall_performance(games_by_player)
 
-
-    #TODO: head to head performance:
-    #   average points for per game against opponent x
-    #   average points against per game against opponent x
-    #   win % against opponent x
+    for head_to_head in head_to_heads:
+        print(f'{head_to_head}\n')
 
     print('---------------------- SAVING RESULTS ---------------------------\n')
 
     results = [overall_performance]
     results.extend(performances_by_season)
+    results.extend(head_to_heads)
 
     sheet_names = ['overall_performance']
     sheet_names.extend(seasons)
+    sheet_names.extend(games_by_player.keys())
 
     save_results(results, sheet_names)
 
